@@ -23,7 +23,7 @@
 #' rangebreak.linear(ahli, allogus, env, type = "glm", f = layer.1 + layer.2 + layer.3, nreps = 10, ...)
 #'
 
-rangebreak.linear <- function(species.1, species.2, env, type, f = NULL, nreps = 99,  ...){
+rangebreak.linear <- function(species.1, species.2, env, type, f = NULL, nreps = 99, cores = detectCores(),  ...){
 
   # Just for visualization
   #   plotraster <- env[[1]]
@@ -74,12 +74,13 @@ rangebreak.linear <- function(species.1, species.2, env, type, f = NULL, nreps =
 
   empirical.overlap <- c(unlist(raster.overlap(empirical.species.1.model, empirical.species.2.model)),
                           unlist(env.overlap(empirical.species.1.model, empirical.species.2.model, env = env, ...)))
-  reps.overlap <- empirical.overlap
+  reps.overlap <- as.data.frame(t(empirical.overlap))
 
   lines.df <- data.frame(slope = rep(NA, nreps), intercept = rep(NA, nreps))
 
   cat("\nBuilding replicate models...\n")
-  for(i in 1:nreps){
+
+  do.rep <- function(i){
     cat(paste("\nReplicate", i, "...\n"))
 
     rep.species.1 <- species.1
@@ -138,15 +139,22 @@ rangebreak.linear <- function(species.1, species.2, env, type, f = NULL, nreps =
       rep.species.2.model <- enmtools.dm(rep.species.2, env, ...)
     }
 
-    # Appending models to replicates list
-    replicate.models[[paste0(species.1$species.name, ".rep.", i)]] <- rep.species.1.model
-    replicate.models[[paste0(species.2$species.name, ".rep.", i)]] <- rep.species.2.model
+    output <- list()
+    output[[species.1$species.name]] <- rep.species.1.model
+    output[[species.2$species.name]] <- rep.species.2.model
 
-    reps.overlap <- rbind(reps.overlap, c(unlist(raster.overlap(rep.species.1.model, rep.species.2.model)),
-                                          unlist(env.overlap(rep.species.1.model, rep.species.2.model, env = env, ...))))
+    return(output)
 
   }
 
+
+  replicate.models <- mclapply(1:nreps, function(x) do.rep(x), mc.cores = cores)
+  names(replicate.models) <- paste0("rep.", 1:nreps)
+
+  geo.overlaps <- do.call(rbind, mclapply(replicate.models, function(x) unlist(raster.overlap(x[[1]], x[[2]])), mc.cores = cores))
+  env.overlaps <- do.call(rbind, mclapply(replicate.models, function(x) unlist(env.overlap(x[[1]], x[[2]], env = env, ...)), mc.cores = cores))
+
+  reps.overlap <- rbind(reps.overlap, cbind(geo.overlaps, env.overlaps))
 
   rownames(reps.overlap) <- c("empirical", paste("rep", 1:nreps))
 

@@ -183,7 +183,7 @@ rbl.gam <- rangebreak.linear(ahli, allogus, env, type = "gam", nreps = 4)
 rbl.mx <- rangebreak.linear(ahli, allogus, env, type = "mx", nreps = 4)
 
 
-rbb.bc <- rangebreak.blob(ahli, allogus, env, type = "bc", nreps = 4)
+rbb.bc <- rangebreak.blob(ahli, allogus, env, type = "bc", nreps = 4, cores = 1)
 
 rbb.dm <- rangebreak.blob(ahli, allogus, env, type = "dm", nreps = 4)
 
