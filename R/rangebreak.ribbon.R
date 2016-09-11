@@ -27,6 +27,11 @@
 
 rangebreak.ribbon <- function(species.1, species.2, ribbon, env, type, f = NULL, width = 1, nreps = 99,  ...){
 
+  if(type == "mx"){
+    cores <- 1
+    cat("Maxent not currently working with multiple cores, number of cores set to 1.")
+  }
+
   species.1 <- check.bg(species.1, env, ...)
   species.2 <- check.bg(species.2, env, ...)
   ribbon <- check.bg(ribbon, env, ...)

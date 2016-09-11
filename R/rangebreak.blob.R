@@ -25,6 +25,11 @@
 
 rangebreak.blob <- function(species.1, species.2, env, type, f = NULL, nreps = 99, cores = detectCores(),  ...){
 
+  if(type == "mx"){
+    cores <- 1
+    cat("Maxent not currently working with multiple cores, number of cores set to 1.")
+  }
+
   # Just for visualization
   plotraster <- env[[1]]
   plotraster[!is.na(plotraster)] <- 1

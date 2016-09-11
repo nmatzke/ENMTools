@@ -28,6 +28,11 @@
 
 background.test <- function(species.1, species.2, env, type, f = NULL, nreps = 99, test.type = "asymmetric", cores = detectCores(), ...){
 
+  if(type == "mx"){
+    cores <- 1
+    cat("Maxent not currently working with multiple cores, number of cores set to 1.")
+  }
+
   # Build a description of the analysis to use for summaries and plot titles
   if(test.type == "symmetric"){
     description <- paste("\n\nSymmetric background test", species.1$species.name, "background vs.", species.2$species.name, "background")
@@ -140,12 +145,13 @@ background.test <- function(species.1, species.2, env, type, f = NULL, nreps = 9
     output <- list()
     output[[species.1$species.name]] <- rep.species.1.model
     output[[species.2$species.name]] <- rep.species.2.model
-
     return(output)
 
   }
 
+
   replicate.models <- mclapply(1:nreps, function(x) do.rep(x), mc.cores = cores)
+
   names(replicate.models) <- paste0("rep.", 1:nreps)
 
   geo.overlaps <- do.call(rbind, mclapply(replicate.models, function(x) unlist(raster.overlap(x[[1]], x[[2]])), mc.cores = cores))
