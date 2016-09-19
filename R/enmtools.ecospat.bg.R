@@ -38,30 +38,33 @@ enmtools.ecospat.bg <- function(species.1, species.2, env, nreps = 99, layers = 
   sp1.env <- extract(env, species.1$presence.points)
   sp1.env <- cbind(rep(species.1$species.name, nrow(species.1$presence.points)),
                    species.1$presence.points,
-                   sp1.env[complete.cases(sp1.env),])
+                   sp1.env)
+  sp1.env <- sp1.env[complete.cases(sp1.env),]
   colnames(sp1.env) <- c("Species", colnames(species.1$presence.points), layers)
-
+  
   #Grabbing environmental data for species 1 background points
   sp1.bg.env <- extract(env, species.1$background.points)
   sp1.bg.env <- cbind(rep(paste0(species.1$species.name, ".bg"), nrow(species.1$background.points)),
                       species.1$background.points,
-                      sp1.bg.env[complete.cases(sp1.bg.env),])
+                      sp1.bg.env)
+  sp1.bg.env <- sp1.bg.env[complete.cases(sp1.bg.env),]
   colnames(sp1.bg.env) <- c("Species", colnames(species.1$background.points), layers)
-
+  
   #Grabbing environmental data for species 2 points
-  sp2.bg.env <- extract(env, species.2$background.points)
-  sp2.bg.env <- cbind(rep(species.2$species.name, nrow(species.2$background.points)),
-                      species.2$background.points,
-                      sp2.bg.env[complete.cases(sp2.bg.env),])
-  colnames(sp2.bg.env) <- c("Species", colnames(species.2$background.points), layers)
-
-
-  #Grabbing environmental data for species 2 background points
   sp2.env <- extract(env, species.2$presence.points)
-  sp2.env <- cbind(rep(paste0(species.2$species.name, ".bg"), nrow(species.2$presence.points)),
+  sp2.env <- cbind(rep(species.2$species.name, nrow(species.2$presence.points)),
                    species.2$presence.points,
-                   sp2.env[complete.cases(sp2.env),])
+                   sp2.env)
+  sp2.env <- sp2.env[complete.cases(sp2.env),]
   colnames(sp2.env) <- c("Species", colnames(species.2$presence.points), layers)
+  
+  #Grabbing environmental data for species 2 background points
+  sp2.bg.env <- extract(env, species.2$background.points)
+  sp2.bg.env <- cbind(rep(paste0(species.2$species.name, ".bg"), nrow(species.2$background.points)),
+                      species.2$background.points,
+                      sp2.bg.env)
+  sp2.bg.env <- sp2.bg.env[complete.cases(sp2.bg.env),]
+  colnames(sp2.bg.env) <- c("Species", colnames(species.2$background.points), layers)
 
 
   #Extracting background env data at all points for env
