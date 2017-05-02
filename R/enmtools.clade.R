@@ -51,13 +51,13 @@ summary.enmtools.clade <- function(this.clade){
 
   cat(paste("\n\nAn enmtools.clade object with", length(this.clade$species), "species\n"))
 
-  cat("\nSpecies names: \n")
-  cat(paste("\t", lapply(this.clade$species, function(x) x$species.name)))
+  cat("\nSpecies names:\n")
+  cat(paste0(lapply(this.clade$species, function(x) x$species.name), collapse=", "))
 
-  cat("\n\nTree: \n")
+  cat("\n\nTree: ")
   print(this.clade$tree)
 
-  cat("\n\nData Summary: \n")
+  cat("\nData Summary:")
   print(kable(this.clade$summary))
 
   cat("\n")
