@@ -6,7 +6,14 @@
 #' @param points A two column data frame with X and Y coordinates
 #' @param radius Radius for circular buffers to draw around points, in meters.
 #' @param mask A raster to use as a mask
-#'
+#' @param filename The (complete! absolute!) path and filename to save this species 
+#'        raster to.  If set to the blank default, \code{""}, the raster may be hard to
+#'        load/save in other functions later.
+#' @param rasterformat The input for the format option of \code{writeRaster}. 
+#'        See \code{?raster::writeRaster}.
+#' @param datatype Default is \code{"INT4S"} (long integer, integers from +/i 2 billion). 
+#'        Floating point datatypes (e.g. \code{"FLT4S"}) will take more disk space/time.
+#'        See \code{?raster::dataType}.
 #' @examples
 #' # Example speed test below (don't run)
 #' test=1
@@ -177,7 +184,7 @@
 #' @export background.raster.buffer
 
 
-background.raster.buffer <- function(points, radius, mask, cropfirst=FALSE){
+background.raster.buffer <- function(points, radius, mask, cropfirst=FALSE, filename="", rasterformat="raster", datatype="INT4S"){
 
   # 2017-04-26_NJM:
   # Check 'points' for lon/lat, make sure 
@@ -221,8 +228,8 @@ background.raster.buffer <- function(points, radius, mask, cropfirst=FALSE){
 		}
   
   # Produce the raster of the buffer; pixels are either NA or 1
-  buffer.raster <- mask(x=cropped, mask=pol)
-  buffer.raster[!is.na(buffer.raster)] <- 1
+  buffer.raster <- mask(x=cropped, mask=pol, filename=filename, inverse=TRUE, updatevalue=1, format=rasterformat, datatype=datatype, overwrite=TRUE)
+  #buffer.raster[!is.na(buffer.raster)] <- 1
 
   return(buffer.raster)
 }
