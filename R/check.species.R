@@ -47,7 +47,9 @@
 #' 
 isNAsr <- function(this.species)
 	{
-	return(is.na(this.species["range"]))
+	TF = is.na(this.species["range"])
+	TF = unname(TF)  # This is needed, so that the result is *identical* to TRUE or FALSE
+	return(TF)
 	}
 
 
