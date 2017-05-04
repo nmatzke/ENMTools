@@ -24,7 +24,7 @@ add.env <- function(species, env){
 
       # Have to assign names manually because otherwise it fails when there's only one env layer
       names <- c(colnames(species$presence.points), names(env))
-      species$presence.points <- cbind(species$presence.points, extract(env, species$presence.points[,1:2]))
+      species$presence.points <- cbind(species$presence.points, raster::extract(env, species$presence.points[,1:2]))
       colnames(species$presence.points) <- names
       species$presence.points <- species$presence.points[complete.cases(species$presence.points),]
     } else {
@@ -35,7 +35,7 @@ add.env <- function(species, env){
       cat("\tProcessing background points...\n")
 
       names <- c(colnames(species$background.points), names(env))
-      species$background.points <- cbind(species$background.points, extract(env, species$background.points[,1:2]))
+      species$background.points <- cbind(species$background.points, raster::extract(env, species$background.points[,1:2]))
       colnames(species$background.points) <- names
       species$background.points <- species$background.points[complete.cases(species$background.points),]
     } else {

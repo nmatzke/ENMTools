@@ -31,12 +31,64 @@ enmtools.species <- function(range = NA, presence.points = NA, background.points
     if(!any(c("data.frame") %in% class(presence.points))){
       print("Argument presence.points requires an object of class data.frame")
     }
+
+  # 2017-04-26_NJM:
+  # Check 'points' for lon/lat, make sure 
+  # 1st column = x = longitude
+  # 2nd column = y = latitude
+  tmpnames = colnames(presence.points)
+  
+  # First column with "lon" in it is x, longitude
+  xTF = grepl(pattern="lon", x=tmpnames)
+  if (any(xTF) == TRUE)
+  	{
+    xcolnum = (1:length(tmpnames))[xTF][1]
+    } else {
+    xcolnum = 1
+    }
+  # First column with "lat" in it is y, latitude
+  yTF = grepl(pattern="lat", x=tmpnames)
+  if (any(yTF) == TRUE)
+  	{
+    ycolnum = (1:length(tmpnames))[yTF][1]
+    } else {
+    ycolnum = 2
+    }
+  xyvals = presence.points[,c(xcolnum, ycolnum)]
+	presence.points = xyvals
+	names(presence.points) = c("longitude", "latitude")
   }
 
   if(!isTRUE(is.na(background.points))){
     if(!any("data.frame" %in% class(background.points))){
       print("Argument background.points requires an object of class data.frame")
     }
+
+  # 2017-04-26_NJM:
+  # Check 'points' for lon/lat, make sure 
+  # 1st column = x = longitude
+  # 2nd column = y = latitude
+  tmpnames = colnames(background.points)
+  
+  # First column with "lon" in it is x, longitude
+  xTF = grepl(pattern="lon", x=tmpnames)
+  if (any(xTF) == TRUE)
+  	{
+    xcolnum = (1:length(tmpnames))[xTF][1]
+    } else {
+    xcolnum = 1
+    }
+  # First column with "lat" in it is y, latitude
+  yTF = grepl(pattern="lat", x=tmpnames)
+  if (any(yTF) == TRUE)
+  	{
+    ycolnum = (1:length(tmpnames))[yTF][1]
+    } else {
+    ycolnum = 2
+    }
+  xyvals = background.points[,c(xcolnum, ycolnum)]
+	background.points = xyvals
+	names(background.points) = c("longitude", "latitude")
   }
 
   if(!isTRUE(is.na(species.name))){
@@ -44,6 +96,11 @@ enmtools.species <- function(range = NA, presence.points = NA, background.points
       print("Argument species.name requires an object of class character")
     }
   }
+
+
+
+
+
 
   output <- list(
     range = range,
@@ -99,25 +156,38 @@ summary.enmtools.species <- function(this.species){
 }
 
 
-plot.enmtools.species <- function(this.species){
+#' @param maxpixels Plotting all the pixels of large rasters can
+#'        very slow, and is unnecessary. The \code{maxpixels} option is
+#'        passed to \code{raster::as.raster}, which quickly subsamples
+#'        the image to below the \code{maxpixels} number of pixels.
+#'        The function \code{plot} (technically \code{raster::plot.raster}) is used
+#'        to quickly plot the subset raster.
+#'        Setting \code{maxpixels} to Inf would replicate the original
+#'        behavior.
+#' @param legend Show the colorbar. Default \code{FALSE} is particularly
+#'               useful when plotting many images
+#' @param box    Show the box around the image. Default \code{TRUE}.
+#' @param axes   Show the axis ticks and tick labels. Default \code{FALSE} is particularly
+#'               useful when plotting many images
+#' 
+plot.enmtools.species <- function(this.species, maxpixels=10000, legend=FALSE, box=TRUE, axes=FALSE, nickmar=TRUE){
   stopifnot(inherits(this.species, "enmtools.species"))
 
   if(class(this.species$range) == "RasterLayer"){
-    plot(this.species$range)
-  }
+		plot(this.species$range, maxpixels=maxpixels, legend=legend, box=box, axes=axes)
+		}
 
   if(class(this.species$background.points)  %in% c("data.frame", "matrix")){
-    points(this.species$background.points[,1:2], pch = 4, col = "red")
+    points(this.species$background.points[,1:2], pch=".", col="gray")
   }
 
   if(class(this.species$presence.points) %in% c("data.frame", "matrix")){
-    points(this.species$presence.points[,1:2], pch = 16, col = "black")
+    points(this.species$presence.points[,1:2], pch=".", col="black")
   }
 
   if(class(this.species$species.name) == "character"){
     title(this.species$species.name)
   }
-
 }
 
 print.enmtools.species <- function(this.species){

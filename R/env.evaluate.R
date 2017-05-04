@@ -25,7 +25,7 @@ env.evaluate <- function(species, model, env, bg.source = "background", ...){
 
   if(bg.source == "background"){
     allpoints <- rbind(presence, background)
-    values <- extract(env, allpoints)
+    values <- raster::extract(env, allpoints)
     maxes <- apply(values, 2, function(x) max(x, na.rm = TRUE))
     mins <- apply(values, 2, function(x) min(x, na.rm = TRUE))
   }
@@ -41,7 +41,7 @@ env.evaluate <- function(species, model, env, bg.source = "background", ...){
   bg.table <- t(t(this.lhs) * (maxes  - mins) + mins)
   colnames(bg.table) <- names(env)
 
-  p.table <- extract(env, presence)
+  p.table <- raster::extract(env, presence)
 #
 #   print(mins)
 #   print(maxes)

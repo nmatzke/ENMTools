@@ -36,7 +36,7 @@ enmtools.ecospat.bg <- function(species.1, species.2, env, nreps = 99, layers = 
   
   # 2017-04-30: editing to auto-remove NAs
   # Grabbing environmental data for species 1 points
-  sp1.env <- extract(env, species.1$presence.points)
+  sp1.env <- raster::extract(env, species.1$presence.points)
   keepTF = complete.cases(sp1.env)
   merge1 = rep(species.1$species.name, nrow(species.1$presence.points[keepTF,]))
   merge2 = species.1$presence.points[keepTF,]
@@ -45,7 +45,7 @@ enmtools.ecospat.bg <- function(species.1, species.2, env, nreps = 99, layers = 
   colnames(sp1.env) <- c("Species", colnames(species.1$presence.points), layers)
 
   # Grabbing environmental data for species 1 background points
-  sp1.bg.env <- extract(env, species.1$background.points)
+  sp1.bg.env <- raster::extract(env, species.1$background.points)
   keepTF = complete.cases(sp1.bg.env)
   merge1 = rep(paste0(species.1$species.name, ".bg"), nrow(species.1$background.points[keepTF,]))
   merge2 = species.1$background.points[keepTF,]
@@ -54,7 +54,7 @@ enmtools.ecospat.bg <- function(species.1, species.2, env, nreps = 99, layers = 
   colnames(sp1.bg.env) <- c("Species", colnames(species.1$background.points), layers)
 
   # Grabbing environmental data for species 2 points
-  sp2.env <- extract(env, species.2$presence.points)
+  sp2.env <- raster::extract(env, species.2$presence.points)
   keepTF = complete.cases(sp2.env)
   merge1 = rep(species.2$species.name, nrow(species.2$presence.points[keepTF,]))
   merge2 = species.2$presence.points[keepTF,]
@@ -63,7 +63,7 @@ enmtools.ecospat.bg <- function(species.1, species.2, env, nreps = 99, layers = 
   colnames(sp2.env) <- c("Species", colnames(species.2$presence.points), layers)
 
   # Grabbing environmental data for species 2 background points
-  sp2.bg.env <- extract(env, species.2$background.points)
+  sp2.bg.env <- raster::extract(env, species.2$background.points)
   keepTF = complete.cases(sp2.bg.env)
   merge1 = rep(paste0(species.2$species.name, ".bg"), nrow(species.2$background.points[keepTF,]))
   merge2 = species.2$background.points[keepTF,]

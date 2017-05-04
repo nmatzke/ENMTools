@@ -33,7 +33,7 @@ plot.response <- function(model, env, layer){
 
   for(i in names(env)){
     if(i != layer){
-      layer.values <- extract(env[[i]], points)
+      layer.values <- raster::extract(env[[i]], points)
       plot.df <- cbind(plot.df, rep(mean(layer.values), 100))
       names <- c(names, i)
     }

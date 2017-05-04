@@ -3,17 +3,80 @@
 #'
 #' Code modified from Elith and Hijmans SDM with R tutorial
 #'
+#' NOTE: This function can get VERY slow for large rasters, and it's even worse 
+#'       if you have to repeat it for each of (say) 40 species.  The major
+#'       speedups are:
+#'       (1) set up a script where, when runslow is TRUE, the background
+#'       rasters are generated and saved to rasters_savedir, and these are just
+#'       re-loaded when runslow=FALSE
+#' 
+#'       (2) Make sure to set nonNAs_to_1=FALSE, and then input an actual landmask into mask, 
+#'       where "1" represents land and NA represent non-land (reverse for marine species).
+#' 
+#'       Code to do #2  is below:
+#' 
+#' \code{
+#' # Load altitude raster from downloaded bioclim
+#' alti = raster("rasters/alt_oz.tif")
+#' alti <- raster::setMinMax(alti)
+#' 
+#' # Convert to a NA/1 landmask
+#' wd = getwd()
+#' rasters_savedir = paste0(wd, "saved_rasters/")
+#' if (file.exists(rasters_savedir) == FALSE)
+#' 	{
+#' 	dir.create(rasters_savedir)
+#' 	}
+#' filename = paste0(rasters_savedir, "landmask.grd")
+#' 
+#' # Use calc() to (quite efficiently!) reclassify the raster (better/faster than reclassify)
+#' tmpfun <- function(x)
+#' 	{
+#' 	x[x <= 0] <- NA
+#' 	x[x > 0] <- 1
+#' 	return(x)
+#' 	}
+#' landmask = raster::calc(x=env[[3]], fun=tmpfun, filename=filename, format="raster", overwrite=TRUE)
+#' landmask <- raster::setMinMax(landmask)
+#' 
+#' # Plots and statistics
+#' plot(landmask, maxpixels=1000)
+#' landmask_vals = getValues(landmask)
+#' length(landmask_vals)
+#' numNAs = sum(is.na(landmask_vals))  			# 97134108
+#' numLAND = length(landmask_vals) - numNAs	# 19505892
+#' 
+#' 
+#' # Subsample to lower resolution, retaining NAs (handy for display)
+#' filename = paste0(rasters_savedir, "landmask_lowres.grd")
+#' landmask_lowres = raster::aggregate(x=landmask, fact=10, fun=modal, na.rm=FALSE, filename=filename, format="raster", overwrite=TRUE)
+#' landmask_lowres <- raster::setMinMax(landmask_lowres) 
+#' 
+#' # Plots and statistics
+#' plot(landmask_lowres, maxpixels=1000)
+#' landmask_lowres_vals = getValues(landmask_lowres)
+#' length(landmask_lowres_vals)
+#' numNAs = sum(is.na(landmask_lowres_vals))  			# 958916
+#' numLAND = length(landmask_lowres_vals) - numNAs	# 207484
+#' }
+#'
 #' @param points A two column data frame with X and Y coordinates
 #' @param radius Radius for circular buffers to draw around points, in meters.
 #' @param mask A raster to use as a mask
+#' @param nonNAs_to_1 Default is \code{FALSE}. This assumes that your "mask" input
+#'        is a landmask (1 for land, NA for non-land) (or, the reverse for marine
+#'        species).  If TRUE, then a (slow!) operation will convert all non-NA
+#'        values to 1. If you have no NA values in your raster, this will have 
+#'        no effect!
 #' @param filename The (complete! absolute!) path and filename to save this species 
 #'        raster to.  If set to the blank default, \code{""}, the raster may be hard to
 #'        load/save in other functions later.
 #' @param rasterformat The input for the format option of \code{writeRaster}. 
 #'        See \code{?raster::writeRaster}.
-#' @param datatype Default is \code{"INT4S"} (long integer, integers from +/i 2 billion). 
-#'        Floating point datatypes (e.g. \code{"FLT4S"}) will take more disk space/time.
-#'        See \code{?raster::dataType}.
+#' @param cropfirst Would you like to crop the raster to the extent of the points+buffers? 
+#'        Typically a big speedup for large rasters, but still not super-fast. 
+#'        Default=\code{FALSE}, because you might well need the full-extent raster for
+#'        overlay operations later.
 #' @examples
 #' # Example speed test below (don't run)
 #' test=1
@@ -184,7 +247,7 @@
 #' @export background.raster.buffer
 
 
-background.raster.buffer <- function(points, radius, mask, cropfirst=FALSE, filename="", rasterformat="raster", datatype="INT4S"){
+background.raster.buffer <- function(points, radius, mask, nonNAs_to_1=FALSE, filename="", rasterformat="raster", cropfirst=FALSE){
 
   # 2017-04-26_NJM:
   # Check 'points' for lon/lat, make sure 
@@ -219,7 +282,7 @@ background.raster.buffer <- function(points, radius, mask, cropfirst=FALSE, file
     mask <- mask[[1]]
   }
 
-	# Cropping the raster before mask operation can be faster
+	# Cropping the raster before mask operation can be faster...but dangerous if you need the same extents
 	if (cropfirst == TRUE)
 		{
 		cropped = raster::crop(x=mask, y=extent(pol))
@@ -228,7 +291,12 @@ background.raster.buffer <- function(points, radius, mask, cropfirst=FALSE, file
 		}
   
   # Produce the raster of the buffer; pixels are either NA or 1
-  buffer.raster <- mask(x=cropped, mask=pol, filename=filename, inverse=TRUE, updatevalue=1, format=rasterformat, datatype=datatype, overwrite=TRUE)
+  if (nonNAs_to_1 == TRUE)
+  	{
+  	cropped[!is.na(cropped)] <- 1	# set non-NA values to 1 FIRST. THEN buffer.
+  	}
+  	
+  buffer.raster <- raster::mask(x=cropped, mask=pol, filename=filename, inverse=FALSE, updatevalue=NA, format=rasterformat, overwrite=TRUE)
   #buffer.raster[!is.na(buffer.raster)] <- 1
 
   return(buffer.raster)

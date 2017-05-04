@@ -7,13 +7,16 @@
 #' @param radius Radius for circular buffers to draw around points, in meters. This 
 #'               creates (internally) a polygon layer called '\code{pol}'. 
 #' @param n Sample size for number of background points to return
-#' @param mask A raster to use as a mask for drawing points. Not needed if 
+#' @param mask A raster to use as a mask for drawing points. Can be a landmask (1 for 
+#'						 land, NA for ocean) if you are just sampling coordinates (which is 
+#'             typical). Not needed if 
 #'             \code{use_spsample=TRUE} and \code{extract_values=FALSE}.
 #' @param cropfirst Would you like to crop the raster to the extent of the points+buffers? 
 #'        Typically a big speedup for large rasters, but still not super-fast. Default=\code{TRUE}.
 #' @param use_spsample Randomly sample points from the points+buffer polygon 'pol'. 
 #'                     MUCH faster, slight risk of sampling the same pixel twice, but 
-#'                     this shouldn't matter for most uses.
+#'                     this shouldn't matter for most uses. On the other hand, you 
+#'                     will get coordinates on NA pixels without further processing.
 #' @param type The 'type' option for the \code{sp::spsample} function. Text from spsample 
 #'             documentation: character; "\code{random}" for completely spatial random; "\code{regular}" for regular (systematically aligned) sampling; "\code{stratified}" for stratified random (one single random location in each "cell"); "\code{nonaligned}" for nonaligned systematic sampling (nx random y coordinates, ny random x coordinates); "\code{hexagonal}" for sampling on a hexagonal lattice; "\code{clustered}" for clustered sampling; "\code{Fibonacci}" for Fibonacci sampling on the sphere (see references).
 #' @extract_values Do you want the values extracted, or just the coordinates?
@@ -187,7 +190,7 @@
 #' @export background.points.buffer
 #' 
 
-background.points.buffer <- function(points, radius, n, mask=NULL, cropfirst=TRUE, use_spsample=TRUE, type="random", extract_values=FALSE) {
+background.points.buffer <- function(points, radius, n, mask=NULL, cropfirst=TRUE, use_spsample=FALSE, type="random", extract_values=FALSE) {
   
   # 2017-04-26_NJM:
   # Check 'points' for lon/lat, make sure 
@@ -218,7 +221,6 @@ background.points.buffer <- function(points, radius, n, mask=NULL, cropfirst=TRU
 
 
   # Crop raster to extent of buffered points
-  # editorial: "mask" should be changed to "env"
   if (use_spsample == FALSE)
     {
     # Mask (env raster) is needed here

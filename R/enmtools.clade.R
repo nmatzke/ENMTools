@@ -63,28 +63,74 @@ summary.enmtools.clade <- function(this.clade){
   cat("\n")
 }
 
-plot.enmtools.clade <- function(this.clade){
+
+
+#' @param maxpixels Plotting all the pixels of large rasters can
+#'        very slow, and is unnecessary. The \code{maxpixels} option is
+#'        passed to \code{raster::as.raster}, which quickly subsamples
+#'        the image to below the \code{maxpixels} number of pixels.
+#'        The function \code{plot} (technically \code{raster::plot.raster}) is used
+#'        to quickly plot the subset raster.
+#'        Setting \code{maxpixels} to Inf would replicate the original
+#'        behavior.
+#' @param polygons Plot this polygon layer on top of the species records,
+#'                 if desired. Default \code{NULL} plots nothing.
+#' 
+plot.enmtools.clade <- function(this.clade, maxpixels=10000, polygons=NULL){
 
   # Figure out how many plots you need.  We'll do one for each species (up to 15)
   # and one for the tree.
-  n.plot <- min(16, length(this.clade$species))
-
-  # We'll use this to keep track of how many plots we've made
-  plotted <- 0
-
+  n.plots.per.page <- min(16, length(this.clade$species))
+  
+  if (identical(NA, this.clade$tree) == FALSE)
+  	{
+    n.plot <- 1 + length(this.clade$species)
+		# We'll use this to keep track of how many plots we've made
+		plotted <- 1
+		} else {
+    n.plot <- 0 + length(this.clade$species)
+		# We'll use this to keep track of how many plots we've made
+		plotted <- 0
+		}
+    
   # Figure out how many rows and columns we need, declare a new plot
-  n.rows <- ceiling(sqrt(n.plot))
-  n.cols <- ceiling(n.plot/n.rows)
+  n.rows <- ceiling(sqrt(n.plots.per.page))
+  n.cols <- ceiling(n.plots.per.page/n.rows)
 
-  plot.new()
+  #plot.new()
   par(mfrow = c(n.rows, n.cols))
-
-  for(i in 1:n.plot){
-    plot(this.clade$species[[i]])
+	
+	# Plot the tree
+	if (identical(NA, this.clade$tree) == FALSE)
+  	{
+  	attempt = try(plot(this.clade$tree))
+  	if ("try-error" %in% class(attempt))
+  		{
+  		attempt2 = try(plot(this.clade$tree, show.tip.label=FALSE))
+  			if ("try-error" %in% class(attempt2))
+  				{
+  				plot(1:10,1:10, pch=".", col="white")
+  				txt = paste0("Tree has ", length(this.clade$tree$tip.label), " tips,\ntoo big for plot.")
+  				graphics::text(x=5,y=5,labels=txt)
+  				} else {
+  				axisPhylo()
+  				}
+  		} else {
+  		axisPhylo()
+  		}
+  	title("Phylogeny")
+  	}
+	
+	# Plot the ranges/background/occurrences
+  for(i in (1+plotted):n.plot){
+    plot(this.clade$species[[i-plotted]], maxpixels=maxpixels)
+    if (is.null(polygons) == FALSE)
+    	{
+    	plot(polygons, add=TRUE)
+    	}
   }
 
-  par(mfrow = c(1,1))
-
+  #par(mfrow = c(1,1))
 }
 
 print.enmtools.clade <- function(this.clade){

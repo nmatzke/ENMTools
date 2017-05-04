@@ -50,13 +50,13 @@ visualize.enm <- function(model, env, nbins = 100, layers, plot.points = TRUE){
 
   for(i in names(env)){
     if(!(i %in% layers)){
-      layer.values <- extract(env[[i]], points)
+      layer.values <- raster::extract(env[[i]], points)
       plot.df <- cbind(plot.df, rep(mean(layer.values, na.rm=TRUE), nrow(plot.df)))
       names <- c(names, i)
     }
   }
 
-  pointdata <- as.data.frame(extract(env[[layers]], points))
+  pointdata <- as.data.frame(raster::extract(env[[layers]], points))
 
   colnames(plot.df) <- names
 
@@ -82,7 +82,7 @@ visualize.enm <- function(model, env, nbins = 100, layers, plot.points = TRUE){
     background.plot <- NA
   } else {
     bgpoints <- model$analysis.df[model$analysis.df$presence == 0,1:2]
-    bgdata <- as.data.frame(extract(env[[layers]], bgpoints))
+    bgdata <- as.data.frame(raster::extract(env[[layers]], bgpoints))
     background.plot <- ggplot(bgdata, aes_string(y = names[2], x = names[1])) +
       stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
       xlim(layer1.min, layer1.max) + ylim(layer2.min, layer2.max) +
